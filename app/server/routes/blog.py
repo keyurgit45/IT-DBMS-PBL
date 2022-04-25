@@ -12,6 +12,7 @@ from server.database import (
     retrieve_userblog,
     retrieve_blogs,
     update_blog,
+    search_by_title
 )
 from server.models.blog import (
     BlogSchema,
@@ -72,6 +73,12 @@ async def show_blog(request: Request):
     blog = await retrieve_userblog(uid)
     return ResponseModel(blog, "blog fetched successfully.")
 
+@blogapp.get("/search",summary="Search blog", response_description="Returns All blogs for the key given", tags=["Blog"])
+async def show_blog(request: Request, key: str):
+    # uid = request.headers.get('uid')
+    blog = await search_by_title(key)
+    return ResponseModel(blog, "blog fetched successfully.")
+
 @blogapp.get("/{id}", response_description="Returns All blogs for the id given", tags=["Blog"])
 async def show_blog(id : str):
     blog = await retrieve_blog(id)
@@ -104,4 +111,5 @@ async def delete_student_data(request: Request, id: str):
     return ErrorResponseModel(
         "An error occurred", 404, "Blog with id {0} doesn't exist".format(id)
     )
+
 

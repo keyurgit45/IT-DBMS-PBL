@@ -82,3 +82,11 @@ async def delete_blog(id: str, uid: str):
     if blog:
         await blog_collection.delete_one({"_id": ObjectId(id)})
         return True
+
+async def search_by_title(key: str) -> list:
+    blog = await blog_collection.find({"title" : { "$regex": f"{key}.*" }}).to_list(100)
+    if blog:
+        toret = []
+        for b in blog:
+            toret.append(blog_helper(b))
+        return toret
