@@ -1,9 +1,10 @@
+import email
 from pydantic import BaseModel
 from typing import Optional
 
 class User(BaseModel):
     username: str
-    company: str
+    email: str
     password: str
 class Login(BaseModel):
     username: str

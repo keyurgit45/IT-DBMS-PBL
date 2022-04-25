@@ -33,7 +33,10 @@ async def retrieve_blogs():
 
 
 # Add a new blog into to the database
-async def add_blog(blog_data: dict) -> dict:
+async def add_blog(blog_data: dict, uid: str) -> dict:
+    user = await database['users'].find_one({'_id': ObjectId(uid)})
+    blog_data.update({'author' : user['username'], 'user': str(user['_id'])})
+    print(blog_data)
     blog = await blog_collection.insert_one(blog_data)
     new_blog = await blog_collection.find_one({"_id": blog.inserted_id})
     return blog_helper(new_blog)
@@ -41,6 +44,12 @@ async def add_blog(blog_data: dict) -> dict:
 # Retrieve a blog with a matching ID
 async def retrieve_blog(id: str) -> dict:
     blog = await blog_collection.find_one({"_id": ObjectId(id)})
+    if blog:
+        return blog_helper(blog)
+
+# Retrieve a blog for current user
+async def retrieve_userblog(uid: str) -> dict:
+    blog = await blog_collection.find_one({"_id": ObjectId(uid)})
     if blog:
         return blog_helper(blog)
 

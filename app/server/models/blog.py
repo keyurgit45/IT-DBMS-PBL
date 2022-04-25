@@ -24,8 +24,8 @@ class BlogSchema(BaseModel):
         
         schema_extra = {
             "example": {
-                "title": "John Doe",
-                "author": "jdoe@x.edu.ng",
+                "title": "Blog Title",
+                "author": "author",
                 "user": "john-doe",
                 "content" : "Content of blog",
                 "description" : "This is my first blog",
@@ -44,7 +44,7 @@ class UpdateBlogModel(BaseModel):
     class Config:
         schema_extra = {
             "example": {
-                "title": "John Doe",
+                "title": "Blog Title",
                 "content" : "Content of blog",
                 "description" : "This is my first blog",
                 "keywords": ["New", "Python"]

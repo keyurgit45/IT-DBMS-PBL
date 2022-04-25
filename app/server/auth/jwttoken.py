@@ -11,7 +11,7 @@ def create_access_token(data: dict, response: Response):
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    response.set_cookie('_token',encoded_jwt, httponly=True, expires=30 * 60,secure=True)
+    response.set_cookie('_token',encoded_jwt, httponly=True, expires=60 * 60,secure=True)
     return encoded_jwt
 
 def verify_token(token:str,credentials_exception):

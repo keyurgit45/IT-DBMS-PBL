@@ -1,13 +1,17 @@
-from fastapi import APIRouter, Body, FastAPI, HTTPException, Request, status
+import re
+from typing import Optional
+from urllib import response
+from wsgiref.headers import Headers
+from fastapi import APIRouter, Body, FastAPI, HTTPException, Request, Response, status
 from fastapi.encoders import jsonable_encoder
 from server.auth.jwttoken import verify_token
-
 from starlette.responses import JSONResponse
-
+import motor.motor_asyncio
 from server.database import (
     add_blog,
     delete_blog,
     retrieve_blog,
+    retrieve_userblog,
     retrieve_blogs,
     update_blog,
 )
@@ -18,6 +22,12 @@ from server.models.blog import (
     ResponseModel
 )
 
+
+MONGO_DETAILS = "mongodb://localhost:27017"
+
+client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
+
+database = client.blogapp
 
 blogapp = FastAPI(title="Blogs API")
 # router = APIRouter()
@@ -31,8 +41,11 @@ async def verify_login(request: Request, call_next):
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
         ) )
-        print(username)
-        # request.headers['username'] = username
+        user = await database['users'].find_one({"username": username.username})
+        uid = str(user['_id'])
+        request.headers.__dict__["_list"].append(("uid".encode(), uid.encode()))
+        
+        # response.set_cookie('_u',username , httponly=True, expires=30 * 60,secure=True)
         response = await call_next(request)
         return response
     else:
@@ -42,8 +55,9 @@ async def verify_login(request: Request, call_next):
 
 
 @blogapp.post("/add", response_description="Blog data added into the database", tags=["Blog"])
-async def add_blog_data(blog : BlogSchema = Body(...)):
-    blog = jsonable_encoder(blog)
+async def add_blog_data(request: Request, blog : BlogSchema = Body(...)):
+    uid = request.headers.get('uid')
+    blog = jsonable_encoder(blog, uid)
     new_blog = await add_blog(blog)
     return ResponseModel(new_blog, "blog added successfully.")
 
@@ -52,6 +66,12 @@ async def add_blog_data(blog : BlogSchema = Body(...)):
 async def show_blogs():
     blogs = await retrieve_blogs()
     return ResponseModel(blogs, "blogs fetched successfully.")
+
+@blogapp.get("/myblogs", response_description="Returns All blogs for the id given", tags=["Blog"])
+async def show_blog(request: Request):
+    uid = request.headers.get('uid')
+    blog = await retrieve_userblog(uid)
+    return ResponseModel(blog, "blog fetched successfully.")
 
 @blogapp.get("/{id}", response_description="Returns All blogs for the id given", tags=["Blog"])
 async def show_blog(id : str):
