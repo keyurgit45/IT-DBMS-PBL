@@ -1,8 +1,6 @@
 import re
-from typing import Optional
-from urllib import response
-from wsgiref.headers import Headers
-from fastapi import APIRouter, Body, FastAPI, HTTPException, Request, Response, status
+from typing import List
+from fastapi import Body, FastAPI, HTTPException, Query, Request, Response, status
 from fastapi.encoders import jsonable_encoder
 from server.auth.jwttoken import verify_token
 from starlette.responses import JSONResponse
@@ -55,19 +53,20 @@ async def verify_login(request: Request, call_next):
 
 
 @blogapp.post("/add", response_description="Blog data added into the database", tags=["Blog"])
-async def add_blog_data(request: Request, blog : BlogSchema = Body(...)):
+async def add_blog_data(request: Request, title: str, content: str, description: str, keywords: List[str] = Query(None) ):
+    blog = BlogSchema(title=title, content= content, description=description, author="", user="", likes=0, keywords=keywords)
     uid = request.headers.get('uid')
-    blog = jsonable_encoder(blog, uid)
-    new_blog = await add_blog(blog)
+    blog = jsonable_encoder(blog)
+    new_blog = await add_blog(blog, uid)
     return ResponseModel(new_blog, "blog added successfully.")
 
 
-@blogapp.get("/", response_description="Returns All blogs from the database", tags=["Blog"])
+@blogapp.get("/",summary="Show all Blogs", response_description="Returns All blogs from the database", tags=["Blog"])
 async def show_blogs():
     blogs = await retrieve_blogs()
     return ResponseModel(blogs, "blogs fetched successfully.")
 
-@blogapp.get("/myblogs", response_description="Returns All blogs for the id given", tags=["Blog"])
+@blogapp.get("/myblogs",summary="Show blogs of Logged in user", response_description="Returns All blogs for the id given", tags=["Blog"])
 async def show_blog(request: Request):
     uid = request.headers.get('uid')
     blog = await retrieve_userblog(uid)
@@ -79,9 +78,10 @@ async def show_blog(id : str):
     return ResponseModel(blog, "blog fetched successfully.")
 
 @blogapp.put("/{id}", response_description="Updates Blog", tags=["Blog"])
-async def update_blog_id(id : str, blog : UpdateBlogModel = Body(...)):
-    blog = {k: v for k, v in blog.dict().items() if v is not None}
-    updated_student = await update_blog(id, data=blog)
+async def update_blog_id(request: Request, id : str, blog : UpdateBlogModel = Body(...) ):
+    blog = {k: v for k, v in blog.dict().items() if v is not None }
+    uid = request.headers.get('uid')
+    updated_student = await update_blog(id,uid, data=blog )
     if updated_student:
         return ResponseModel(
             "Blog with ID: {} update is successful".format(id),
@@ -93,9 +93,10 @@ async def update_blog_id(id : str, blog : UpdateBlogModel = Body(...)):
         "There was an error updating the Blog data.",
     )
 
-@blogapp.delete("/{id}", response_description="Blog deleted from the database", tags=["Blog"])
-async def delete_student_data(id: str):
-    deleted_student = await delete_blog(id)
+@blogapp.delete("/{id}",summary="Deletes a blog", response_description="Blog deleted from the database", tags=["Blog"])
+async def delete_student_data(request: Request, id: str):
+    uid = request.headers.get('uid')
+    deleted_student = await delete_blog(id, uid)
     if deleted_student:
         return ResponseModel(
             "Blog with ID: {} removed".format(id), "Blog deleted successfully"
@@ -103,4 +104,4 @@ async def delete_student_data(id: str):
     return ErrorResponseModel(
         "An error occurred", 404, "Blog with id {0} doesn't exist".format(id)
     )
-    
+

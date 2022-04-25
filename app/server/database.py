@@ -48,18 +48,23 @@ async def retrieve_blog(id: str) -> dict:
         return blog_helper(blog)
 
 # Retrieve a blog for current user
-async def retrieve_userblog(uid: str) -> dict:
-    blog = await blog_collection.find_one({"_id": ObjectId(uid)})
+async def retrieve_userblog(uid: str) -> list:
+    blog = await blog_collection.find({"user": str(uid)}).to_list(100)
     if blog:
-        return blog_helper(blog)
+        toret = []
+        for b in blog:
+            toret.append(blog_helper(b))
+        return toret
 
 
 # Update a blog with a matching ID
-async def update_blog(id: str, data: dict):
+async def update_blog(id: str,uid: str, data: dict, ):
     # Return false if an empty request body is sent.
     if len(data) < 1:
         return False
     blog = await blog_collection.find_one({"_id": ObjectId(id)})
+    if blog['user'] != uid:
+        return False
     if blog:
         updated_blog = await blog_collection.update_one(
             {"_id": ObjectId(id)}, {"$set": data}
@@ -70,8 +75,10 @@ async def update_blog(id: str, data: dict):
 
 
 # Delete a blog from the database
-async def delete_blog(id: str):
+async def delete_blog(id: str, uid: str):
     blog = await blog_collection.find_one({"_id": ObjectId(id)})
+    if blog['user'] != uid:
+        return False
     if blog:
         await blog_collection.delete_one({"_id": ObjectId(id)})
         return True

@@ -4,13 +4,13 @@ from typing import Optional
 from bson import ObjectId
 from pydantic import BaseModel, EmailStr, Field
 
-from server.models.pyobjectid import PyObjectId
+# from server.models.pyobjectid import PyObjectId
 
 class BlogSchema(BaseModel):
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    # id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     title: str = Field(...)
     author: str = Field(...)
-    user: str = Field(...)
+    user: ObjectId = Field(...)
     description: str = Field(...)
     content : str = Field(...)
     keywords : list[str] = []
@@ -20,7 +20,7 @@ class BlogSchema(BaseModel):
     class Config:
         allow_population_by_field_name = True
         arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+        # json_encoders = {ObjectId: str}
         
         schema_extra = {
             "example": {
