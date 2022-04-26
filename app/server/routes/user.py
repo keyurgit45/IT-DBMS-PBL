@@ -1,5 +1,6 @@
 from typing import Optional
 from urllib3 import HTTPResponse
+from server.models.blog import ResponseModel
 from server.auth.hashing import Hash
 from fastapi import  Cookie, FastAPI, HTTPException, Depends, Request, Response,status
 # from server.auth.oauth import get_current_user
@@ -38,6 +39,7 @@ async def login(response: Response, request:OAuth2PasswordRequestForm = Depends(
 @userapp.get('/logout' , tags=["User"])
 def logout(request: Request, response: Response):
     response.delete_cookie("_token")
+    return ResponseModel("","Logout Successful.")
 
 @userapp.get("/getcookie" , tags=["User"])
 async def getcookie(request: Request):

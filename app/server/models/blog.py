@@ -10,7 +10,7 @@ class BlogSchema(BaseModel):
     # id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     title: str = Field(...)
     author: str = Field(...)
-    user: ObjectId = Field(...)
+    user: str = Field(...)
     description: str = Field(...)
     content : str = Field(...)
     keywords : list[str] = []
@@ -38,7 +38,7 @@ class BlogSchema(BaseModel):
 class UpdateBlogModel(BaseModel):
     title: Optional[str]
     content: Optional[str]
-    desciption: Optional[str]
+    description: Optional[str]
     keywords: Optional[list[str]]
 
     class Config:

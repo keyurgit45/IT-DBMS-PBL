@@ -63,7 +63,7 @@ async def update_blog(id: str,uid: str, data: dict, ):
     if len(data) < 1:
         return False
     blog = await blog_collection.find_one({"_id": ObjectId(id)})
-    if blog['user'] != uid:
+    if ObjectId(str(blog['user'])) != ObjectId(uid):
         return False
     if blog:
         updated_blog = await blog_collection.update_one(
@@ -77,11 +77,12 @@ async def update_blog(id: str,uid: str, data: dict, ):
 # Delete a blog from the database
 async def delete_blog(id: str, uid: str):
     blog = await blog_collection.find_one({"_id": ObjectId(id)})
-    if blog['user'] != uid:
-        return False
     if blog:
-        await blog_collection.delete_one({"_id": ObjectId(id)})
-        return True
+        if blog['user'] != uid:
+            return False
+        if blog:
+            await blog_collection.delete_one({"_id": ObjectId(id)})
+            return True
 
 async def search_by_title(key: str) -> list:
     blog = await blog_collection.find({"title" : { "$regex": f"{key}.*" }}).to_list(100)
